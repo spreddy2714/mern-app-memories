@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import Post from '../../client/src/components/Posts/Post/Post.js';
 import PostMessage from '../models/postMessage.js'
 
 export const getPosts = async (req, res) => {
@@ -34,7 +33,40 @@ export const updatePost = async (req, res) => {
 
     try {
         const updatedPost = await PostMessage.findByIdAndUpdate(_id, post, {new : true});
-        res.status(200).json(updatePost);
+        res.status(200).json(updatedPost);
+    }
+    catch(error) {
+        res.status(500).json({message : error.message});
+    }
+}
+
+export const deletePost = async (req, res) => {
+    const {id : _id} = req.params;
+    if(!mongoose.Types.ObjectId.isValid(_id))
+    {
+        return res.status(400).send('No post found with the given id');
+    }
+
+    try {
+        await PostMessage.findByIdAndRemove(_id);
+        res.status(200).send('Deleted successfully');
+    } catch (error) {
+        res.status(500).json({message : error.message});
+    }
+}
+
+export const likePost = async (req, res) => {
+    const {id : _id} = req.params;
+
+    if(!mongoose.Types.ObjectId.isValid(_id))
+    {
+        return res.status(400).send('No post found with the given id');
+    }
+
+    try {
+        const post = await PostMessage.findById(_id);
+        const updatedPost = await PostMessage.findByIdAndUpdate(_id, {likeCount : post.likeCount+1}, {new : true});
+        res.status(200).json(updatedPost);
     }
     catch(error) {
         res.status(500).json({message : error.message});
